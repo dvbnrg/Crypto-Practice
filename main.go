@@ -23,7 +23,7 @@ type Req struct {
 
 // Res is the response structure
 type Res struct {
-	r         Req
+	Message   string `json:"message"`
 	Signature string `json:"signature"`
 	Pubkey    string `json:"pubkey"`
 }
@@ -64,6 +64,8 @@ func Auth(w http.ResponseWriter, r *http.Request) {
 
 	PrivateKey(priv)
 
+	CreateSignature(priv)
+
 }
 
 // CreateCertObject creates the x509 certificate object
@@ -87,6 +89,18 @@ func CreateCertObject() *x509.Certificate {
 	}
 
 	return ca
+}
+
+func CreateSignature(privatekey *rsa.PrivateKey) []byte {
+
+	// signature := r.Bytes()
+	signature, err := privatekey.Sign(rand.Reader, []byte(privatekey), nil)
+	if err != nil {
+		panic(err)
+	}
+	signature = append(signature, s.Bytes()...)
+
+	return signature
 }
 
 // PublicKey creates takes in a certificate slice and returns the public key
@@ -113,4 +127,8 @@ func PrivateKey(priv *rsa.PrivateKey) *os.File {
 	keyOut.Close()
 	log.Print("written key.pem\n")
 	return keyOut
+}
+
+func PrepareResponse(r Req, s []byte, k *os.File) *Res {
+
 }
